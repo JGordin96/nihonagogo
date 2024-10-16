@@ -51,7 +51,7 @@ function getTranslateKanji() {
             translateGradeColor = 'text-success';
         } else if (translateGrade <= 80 && translateGrade >= 50){
             translateGradeSaying = 'まま';
-            translateGrade = 'text-warning'
+            translateGradeColor = 'text-warning'
         } else {
             translateGradeSaying = '嘘 でしょ';
             translateGradeColor = 'text-danger'
@@ -61,7 +61,7 @@ function getTranslateKanji() {
         + '<h5 class="align-middle text-center fs-1">Correct: '+ window.correct.length + '</h5>'
         + '<h5 class="align-middle text-center fs-1">Incorrect: '+ window.incorrect.length + '</h5>'
         + '<h5 class="align-middle text-center fs-1 mt-2 '+translateGradeColor+'">'+ translateGrade + '%</h5>'
-        + '<h5 class="align-middle text-center fs-1 '+translateGradeColor+'"">'+ translateGradeSaying + '</h5>'
+        + '<h5 class="align-middle text-center fs-1 '+translateGradeColor+'">'+ translateGradeSaying + '</h5>'
         + '</div>'
         + '</div>';
         $('#translate-div').append(resultCard);
