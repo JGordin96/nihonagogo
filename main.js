@@ -10,7 +10,9 @@ function getKanjiByGrade() {
         dataType: "json",
     
         success: function(result){
-            window.kanji = result;
+            //TODO: undo only for testing
+            window.kanji = result.slice(0, 5);
+            // window.kanji = result;
     
             $.each(result, function(index, value) {
                 let kanjiCard = '<div class="kanji-card card col-md-3" style="width: 18rem;" id="kanji_'+value+'"><a href="#ex1" rel="modal:open"'
@@ -39,9 +41,42 @@ $(document).on('click', '[id^="btn-grade-"]', function() {
 
 function getTranslateKanji() {
     $('#card-row').html('');
+    if(window.kanji.length == 0) {
+        let totalWords = window.correct.length + window.incorrect.length;
+        let translateGrade = (100 * window.correct.length) / totalWords
+        let translateGradeSaying = '';
+        let translateGradeColor = '';
+        if(translateGrade >= 80) {
+            translateGradeSaying = 'すごい!';
+            translateGradeColor = 'text-success';
+        } else if (translateGrade <= 80 && translateGrade >= 50){
+            translateGradeSaying = 'まま';
+            translateGrade = 'text-warning'
+        } else {
+            translateGradeSaying = '嘘 でしょ';
+            translateGradeColor = 'text-danger'
+        }
+        let resultCard = '<div class="result-card" style="width: 18rem;">'
+        + '<div class="card" style="width: 18rem; height: 18rem;">'
+        + '<h5 class="align-middle text-center fs-1">Correct: '+ window.correct.length + '</h5>'
+        + '<h5 class="align-middle text-center fs-1">Incorrect: '+ window.incorrect.length + '</h5>'
+        + '<h5 class="align-middle text-center fs-1 mt-2 '+translateGradeColor+'">'+ translateGrade + '%</h5>'
+        + '<h5 class="align-middle text-center fs-1 '+translateGradeColor+'"">'+ translateGradeSaying + '</h5>'
+        + '</div>'
+        + '</div>';
+        $('#translate-div').append(resultCard);
+    }
 
-    let randomKnaji = window.kanji[Math.floor(Math.random()*window.kanji.length)];
-    console.log(randomKnaji);
+    let randomKanjiIndex = Math.floor(Math.random()*window.kanji.length);
+    //TODO: more testing of this 
+    if(randomKanjiIndex !== 0) {
+        randomKanjiIndex = randomKanjiIndex -1
+    }
+    
+    let randomKnaji = window.kanji[randomKanjiIndex];
+    window.randomTranslateKanji = randomKnaji;
+    window.kanji.splice(randomKanjiIndex , 1);
+
     //TODO: refactor
     $.ajax({
         type: 'GET',
@@ -49,14 +84,14 @@ function getTranslateKanji() {
         dataType: "json",
 
         success: function(result){
-            window.kanjiMeaning = result.heisig_en;
+            window.kanjiMeanings = result.meanings;
             let kanjiCard = '<div class="kanji-card" style="width: 18rem;" id="kanji_'+randomKnaji+'">'
             + '<div class="card" style="width: 18rem; height: 18rem;">'
             + '<h5 class="align-middle text-center fs-1" style="margin-top: 50%">'+ randomKnaji + '</h5>'
             + '</div>'
             + '</div>';
 
-            let input = '<input type="text" class="form-control mt-3" id="translate-input">';
+            let input = '<input type="text" class="form-control mt-3" id="translate-input" autocomplete="off">';
             let checkBtn = '<button id="submit-translate-btn" type="button" class="btn btn-primary mt-3">Check</button>'
             $('#translate-div').append(kanjiCard);
             $('#translate-div').append(input);
@@ -67,19 +102,23 @@ function getTranslateKanji() {
 
 
 $(document).on('click', '#mode-translate', function() {
+    window.correct = [];
+    window.incorrect = [];
     getTranslateKanji();        
 });
 
 
 $(document).on('click', '#submit-translate-btn', function() {
     let translateInput = $('#translate-input');
-//todo: include other meanings
-    if (translateInput.val() == window.kanjiMeaning || window.kanjiMeaning.includes(translateInput.val())) {
+    if (window.kanjiMeanings.includes(translateInput.val())) {
         translateInput.addClass('bg-success');
+        window.correct.push(window.randomTranslateKanji);
     } else {
         translateInput.addClass('bg-danger');
-        let correctMeaningSpan = '<div id="correct-meaning">'+window.kanjiMeaning+'</span>';
+        let kanjiMeaningsStr = createStringFromArray(window.kanjiMeanings)
+        let correctMeaningSpan = '<div id="correct-meaning">'+kanjiMeaningsStr+'</span>';
         $('#translate-div').append(correctMeaningSpan);
+        window.incorrect.push(window.randomTranslateKanji);
     }
 
     let translateNewKanjiBtn = '<button id="translate-new-kanji-btn" type="button" class="btn btn-primary mt-3">New Kanji</button>';
